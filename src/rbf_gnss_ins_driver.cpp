@@ -104,7 +104,7 @@ namespace rbf_gnss_ins_driver
         pub_imu_ = this->create_publisher<sensor_msgs::msg::Imu>(config_params_.topics_.imu_topic_, qos);
 
         /*AUTOWARE ORIENTATION MSGS PUBLISHERS*/
-        pub_gnss_ins_orientation_ = this->create_publisher<autoware_sensing_msgs::msg::GnssInsOrientationStamped>("/gnss_ins_orientation", 10);
+        pub_gnss_ins_orientation_ = this->create_publisher<autoware_sensing_msgs::msg::GnssInsOrientationStamped>("/gnss_ins_orientation", qos);
 
         /*ODOM PUBLISHERS IF ENABLED*/
         if (config_params_.odometry_.use_odometry_)
