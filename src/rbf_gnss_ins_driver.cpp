@@ -99,12 +99,20 @@ namespace rbf_gnss_ins_driver
         pub_ecef_twist_ = this->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>("/robins/raw/ecef_twist", qos);
 
         /*STANDARD MSGS PUBLISHERS*/
-        pub_nav_sat_fix_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(config_params_.topics_.nav_sat_fix_topic_, qos);
         pub_twist_ = this->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(config_params_.topics_.twist_topic_, qos);
         pub_imu_ = this->create_publisher<sensor_msgs::msg::Imu>(config_params_.topics_.imu_topic_, qos);
-
-        /*AUTOWARE ORIENTATION MSGS PUBLISHERS*/
-        pub_gnss_ins_orientation_ = this->create_publisher<autoware_sensing_msgs::msg::GnssInsOrientationStamped>("/gnss_ins_orientation", 10);
+        
+        /*AUTOWARE ORIENTATION & NAVSATFIX MSGS PUBLISHERS(DIFFERENT QoS PROFILE)*/
+        rclcpp::QoS qos_profile(1); // KeepLast(1)
+        qos_profile.reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE);
+        qos_profile.durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
+        qos_profile.lifespan(rclcpp::Duration::max()); // Infinite Lifespan
+        qos_profile.deadline(rclcpp::Duration::max()); // Infinite Deadline
+        qos_profile.liveliness(RMW_QOS_POLICY_LIVELINESS_AUTOMATIC);
+        qos_profile.liveliness_lease_duration(rclcpp::Duration::max()); // Infinite Liveliness Lease Duration
+        
+        pub_gnss_ins_orientation_ = this->create_publisher<autoware_sensing_msgs::msg::GnssInsOrientationStamped>("/gnss_ins_orientation", qos_profile);
+        pub_nav_sat_fix_ = this->create_publisher<sensor_msgs::msg::NavSatFix>(config_params_.topics_.nav_sat_fix_topic_, qos_profile);
 
         /*ODOM PUBLISHERS IF ENABLED*/
         if (config_params_.odometry_.use_odometry_)
