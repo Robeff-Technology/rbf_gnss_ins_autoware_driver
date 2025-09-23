@@ -111,6 +111,7 @@ namespace rbf_gnss_ins_driver
 
         //Function to convert INSPVA to gnss_ins_orientation_stamped message
         autoware_sensing_msgs::msg::GnssInsOrientationStamped ins_to_orientation_stamped_msg(const InsPvax& ins_pva, std::string frame_id);
+        autoware_sensing_msgs::msg::GnssInsOrientationStamped gpnav_to_orientation_stamped_msg(const rbf_gnss_ins_driver::msg::Gpnav& gpnav, std::string frame_id);
     };
 
 } // namespace rbf_gnss_ins_driver

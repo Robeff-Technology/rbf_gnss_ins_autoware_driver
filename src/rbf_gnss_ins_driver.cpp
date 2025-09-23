@@ -26,7 +26,7 @@ namespace rbf_gnss_ins_driver
         gnss_parser_ = std::make_shared<GnssStreamParser>(std::bind(&GnssInsDriver::binary_callback, this, std::placeholders::_1, std::placeholders::_2),
         std::bind(&GnssInsDriver::nmea_callback, this, std::placeholders::_1));
         timer_ = this->create_wall_timer(std::chrono::milliseconds(1000 / config_params_.working_frequency_), std::bind(&GnssInsDriver::timer_callback, this));
-        sub_rtcm_ = this->create_subscription<mavros_msgs::msg::RTCM>(config_params_.topics_.rtcm_topic_, 10, std::bind(&GnssInsDriver::rtcm_callback, this, std::placeholders::_1));
+        sub_rtcm_ = this->create_subscription<mavros_msgs::msg::RTCM>(config_params_.topics_.rtcm_topic_, rclcpp::SensorDataQoS(), std::bind(&GnssInsDriver::rtcm_callback, this, std::placeholders::_1));
     }
 
     void GnssInsDriver::load_parameters()
@@ -245,16 +245,15 @@ namespace rbf_gnss_ins_driver
 
             auto twist_msg = converter_->gpnav_to_twist_msg(gpnav_, imu_data_, config_params_.frames_.gnss_frame_);
             pub_twist_->publish(twist_msg);
+
+            auto orientation_msg = converter_->gpnav_to_orientation_stamped_msg(gpnav_, config_params_.frames_.gnss_frame_);
+            pub_gnss_ins_orientation_->publish(orientation_msg);
         }
     }
 
     void GnssInsDriver::rtcm_callback(const mavros_msgs::msg::RTCM::SharedPtr msg)
     {
         rtcm_status_.received_size_ += msg->data.size();
-        if(Converter::is_ins_active(ins_pva_.ins_status) != true || Converter::is_ins_active(gpnav_) != true)
-        {
-            return;
-        }
         try
         {
             serial_port_ptr_->write(reinterpret_cast<const char *>(msg->data.data()), msg->data.size());
