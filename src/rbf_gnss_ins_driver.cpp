@@ -234,6 +234,11 @@ void GnssInsDriver::binary_callback(const uint8_t * data, GnssStreamParser::Mess
         tf_broadcaster_->sendTransform(transform);
       }
 
+
+      auto imu_msg =
+        converter_->ins_to_imu_msg(ins_pva_, raw_imux_, config_params_.frames_.imu_frame_);
+      pub_imu_->publish(imu_msg);
+
       auto nav_sat_fix_msg =
         converter_->ins_to_nav_sat_fix_msg(ins_pva_, config_params_.frames_.gnss_frame_);
       pub_nav_sat_fix_->publish(nav_sat_fix_msg);
