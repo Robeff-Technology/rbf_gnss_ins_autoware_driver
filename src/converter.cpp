@@ -325,8 +325,8 @@ sensor_msgs::msg::Imu Converter::ins_to_imu_msg(
   imu_msg.linear_acceleration_covariance = {0, 0, 0, 0, 0, 0, 0, 0, 0};
   imu_msg.angular_velocity_covariance = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  imu_msg.orientation_covariance[0] = ins_pva.std_dev_pitch * ins_pva.std_dev_pitch;
-  imu_msg.orientation_covariance[4] = ins_pva.std_dev_roll * ins_pva.std_dev_roll;
+  imu_msg.orientation_covariance[0] = ins_pva.std_dev_roll * ins_pva.std_dev_roll;
+  imu_msg.orientation_covariance[4] = ins_pva.std_dev_pitch * ins_pva.std_dev_pitch;
   imu_msg.orientation_covariance[8] = ins_pva.std_dev_azimuth * ins_pva.std_dev_azimuth;
 
   return imu_msg;
@@ -416,15 +416,15 @@ autoware_sensing_msgs::msg::GnssInsOrientationStamped Converter::ins_to_orientat
 
   tf2::Quaternion q;
   q.setRPY(
-    degree_to_radian(ins_pva.pitch), degree_to_radian(ins_pva.roll),
+    degree_to_radian(ins_pva.roll), degree_to_radian(ins_pva.pitch),
     degree_to_radian(ins_pva.azimuth));
   orientation_msg.orientation.orientation.x = q.getX();
   orientation_msg.orientation.orientation.y = q.getY();
   orientation_msg.orientation.orientation.z = q.getZ();
   orientation_msg.orientation.orientation.w = q.getW();
 
-  orientation_msg.orientation.rmse_rotation_x = ins_pva.std_dev_pitch * ins_pva.std_dev_pitch;
-  orientation_msg.orientation.rmse_rotation_y = ins_pva.std_dev_roll * ins_pva.std_dev_roll;
+  orientation_msg.orientation.rmse_rotation_x = ins_pva.std_dev_roll * ins_pva.std_dev_roll;
+  orientation_msg.orientation.rmse_rotation_y = ins_pva.std_dev_pitch * ins_pva.std_dev_pitch;
   orientation_msg.orientation.rmse_rotation_z = ins_pva.std_dev_azimuth * ins_pva.std_dev_azimuth;
 
   return orientation_msg;
