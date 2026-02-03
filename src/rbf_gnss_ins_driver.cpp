@@ -115,7 +115,7 @@ void GnssInsDriver::init_publishers()
   nmea_pub_ = this->create_publisher<nmea_msgs::msg::Sentence>("/robins/raw/nmea_sentence", qos);
 
   /*STD MSGS without INS*/
-  pub_imu_raw_ = this->create_publisher<sensor_msgs::msg::Imu>("/robins/raw/imu", qos);
+  pub_imu_raw_ = this->create_publisher<sensor_msgs::msg::Imu>("/robins/raw/imu", 100);
   pub_nav_sat_fix_raw_ =
     this->create_publisher<sensor_msgs::msg::NavSatFix>("/robins/raw/nav_sat_fix", qos);
   pub_temperature_ =
@@ -126,7 +126,7 @@ void GnssInsDriver::init_publishers()
   /*STANDARD MSGS PUBLISHERS*/
   pub_twist_ = this->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>(
     config_params_.topics_.twist_topic_, qos);
-  pub_imu_ = this->create_publisher<sensor_msgs::msg::Imu>(config_params_.topics_.imu_topic_, qos);
+  pub_imu_ = this->create_publisher<sensor_msgs::msg::Imu>(config_params_.topics_.imu_topic_, 100);
 
   /*AUTOWARE ORIENTATION & NAVSATFIX MSGS PUBLISHERS(DIFFERENT QoS PROFILE)*/
   rclcpp::QoS qos_profile(1);  // KeepLast(1)
