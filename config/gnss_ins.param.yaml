@@ -32,4 +32,4 @@
       altitude: 0.0
 
     altitude_config:
-      altitude_mode: 0 # 0: orthometric, 1: ellipsoid
+      altitude_mode: 1 # 0: orthometric, 1: ellipsoid
