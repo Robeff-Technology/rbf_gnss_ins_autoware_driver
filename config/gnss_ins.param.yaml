@@ -4,7 +4,7 @@
     working_frequency: 600 # working frequency of the driver
     
     serial_config:
-      port: "/dev/ttyUSB0" # current port name of the device
+      port: "/dev/GNSS" # current port name of the device
       baudrate: 460800 # current baudrate of the device
 
     topic_config:
