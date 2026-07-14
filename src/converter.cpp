@@ -14,16 +14,16 @@ constexpr double gyro_scale_factor = 0.000001006;
 
 namespace
 {
-// The INS reports attitude with azimuth measured clockwise from North (NED
-// convention), whereas ROS/Autoware expect an ENU orientation with yaw measured
-// counter-clockwise from East. Convert the heading with yaw_enu = 90 - azimuth so
-// that the resulting orientation matches the map (ENU) frame. Roll and pitch are
-// kept as reported.
+// ROS/Autoware expect an ENU orientation with yaw measured counter-clockwise
+// from East. This INS reports azimuth clockwise with 0 at East (observed on the
+// vehicle: the previous yaw_enu = 90 - azimuth mapping left a +90 deg static
+// offset, reading 0 when facing South), so the correct mapping is
+// yaw_enu = -azimuth. Pitch is reported positive-down (NED style) and is negated
+// to match ENU positive-up; roll is kept as reported.
 tf2::Quaternion ins_rpy_to_enu_quaternion(double roll_deg, double pitch_deg, double azimuth_deg)
 {
   tf2::Quaternion q;
-  q.setRPY(
-    roll_deg * M_PI / 180.0, pitch_deg * M_PI / 180.0, (90.0 - azimuth_deg) * M_PI / 180.0);
+  q.setRPY(roll_deg * M_PI / 180.0, -pitch_deg * M_PI / 180.0, -azimuth_deg * M_PI / 180.0);
   return q;
 }
 }  // namespace
