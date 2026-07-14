@@ -12,6 +12,22 @@ constexpr double accel_scale_factor = 0.000000186;
 constexpr double hz_to_second = 100;
 constexpr double gyro_scale_factor = 0.000001006;
 
+namespace
+{
+// ROS/Autoware expect an ENU orientation with yaw measured counter-clockwise
+// from East. This INS reports azimuth clockwise with 0 at East (observed on the
+// vehicle: the previous yaw_enu = 90 - azimuth mapping left a +90 deg static
+// offset, reading 0 when facing South), so the correct mapping is
+// yaw_enu = -azimuth. Pitch is reported positive-down (NED style) and is negated
+// to match ENU positive-up; roll is kept as reported.
+tf2::Quaternion ins_rpy_to_enu_quaternion(double roll_deg, double pitch_deg, double azimuth_deg)
+{
+  tf2::Quaternion q;
+  q.setRPY(roll_deg * M_PI / 180.0, -pitch_deg * M_PI / 180.0, -azimuth_deg * M_PI / 180.0);
+  return q;
+}
+}  // namespace
+
 std_msgs::msg::Header Converter::create_header(std::string frame_id)
 {
   std_msgs::msg::Header header;
@@ -306,10 +322,7 @@ sensor_msgs::msg::Imu Converter::ins_to_imu_msg(
 {
   sensor_msgs::msg::Imu imu_msg;
   imu_msg.header = create_header(std::move(frame_id));
-  tf2::Quaternion q;
-  q.setRPY(
-    degree_to_radian(ins_pva.roll), degree_to_radian(ins_pva.pitch),
-    degree_to_radian(ins_pva.azimuth));
+  tf2::Quaternion q = ins_rpy_to_enu_quaternion(ins_pva.roll, ins_pva.pitch, ins_pva.azimuth);
 
   imu_msg.orientation.w = q.getW();
   imu_msg.orientation.x = q.getX();
@@ -342,10 +355,7 @@ nav_msgs::msg::Odometry Converter::convert_to_odometry_msg(
   odometry_msg.pose.pose.position.x = x;
   odometry_msg.pose.pose.position.y = y;
   odometry_msg.pose.pose.position.z = z;
-  tf2::Quaternion q;
-  q.setRPY(
-    degree_to_radian(ins_pva.roll), degree_to_radian(ins_pva.pitch),
-    degree_to_radian(ins_pva.azimuth));
+  tf2::Quaternion q = ins_rpy_to_enu_quaternion(ins_pva.roll, ins_pva.pitch, ins_pva.azimuth);
   odometry_msg.pose.pose.orientation.w = q.getW();
   odometry_msg.pose.pose.orientation.x = q.getX();
   odometry_msg.pose.pose.orientation.y = q.getY();
