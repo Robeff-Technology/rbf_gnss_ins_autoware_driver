@@ -2,6 +2,7 @@
 
 #include <rclcpp/clock.hpp>
 
+#include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 
 #include <cmath>
@@ -404,17 +405,31 @@ geometry_msgs::msg::TwistWithCovarianceStamped Converter::ins_to_twist_msg(
 {
   geometry_msgs::msg::TwistWithCovarianceStamped twist_msg;
   twist_msg.header = create_header(std::move(frame_id));
-  twist_msg.twist.twist.linear.x = ins_pva.east_velocity;
-  twist_msg.twist.twist.linear.y = ins_pva.north_velocity;
-  twist_msg.twist.twist.linear.z = ins_pva.up_velocity;
+
+  // INSPVAX velocity is ENU; the twist is published with a body-fixed frame_id,
+  // so rotate it into the vehicle frame using the INS attitude (v_body = R^T v_enu).
+  const tf2::Matrix3x3 rot(ins_rpy_to_enu_quaternion(ins_pva.roll, ins_pva.pitch, ins_pva.azimuth));
+  const tf2::Vector3 vel_enu(ins_pva.east_velocity, ins_pva.north_velocity, ins_pva.up_velocity);
+  const tf2::Vector3 vel_body = rot.transpose() * vel_enu;
+  twist_msg.twist.twist.linear.x = vel_body.x();
+  twist_msg.twist.twist.linear.y = vel_body.y();
+  twist_msg.twist.twist.linear.z = vel_body.z();
   twist_msg.twist.twist.angular.x = degree_to_radian(raw_gyro_to_deg_s(raw_imux.x_gyro_output));
   twist_msg.twist.twist.angular.y =
     -1.0 * degree_to_radian(raw_gyro_to_deg_s(raw_imux.y_gyro_output));
   twist_msg.twist.twist.angular.z = degree_to_radian(raw_gyro_to_deg_s(raw_imux.z_gyro_output));
 
-  twist_msg.twist.covariance[0] = ins_pva.std_dev_east_velocity * ins_pva.std_dev_east_velocity;
-  twist_msg.twist.covariance[7] = ins_pva.std_dev_north_velocity * ins_pva.std_dev_north_velocity;
-  twist_msg.twist.covariance[14] = ins_pva.std_dev_up_velocity * ins_pva.std_dev_up_velocity;
+  // Rotate the ENU velocity covariance into the body frame: C_body = R^T C_enu R.
+  tf2::Matrix3x3 cov_enu(
+    ins_pva.std_dev_east_velocity * ins_pva.std_dev_east_velocity, 0.0, 0.0, 0.0,
+    ins_pva.std_dev_north_velocity * ins_pva.std_dev_north_velocity, 0.0, 0.0, 0.0,
+    ins_pva.std_dev_up_velocity * ins_pva.std_dev_up_velocity);
+  const tf2::Matrix3x3 cov_body = rot.transpose() * cov_enu * rot;
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      twist_msg.twist.covariance[i * 6 + j] = cov_body[i][j];
+    }
+  }
   return twist_msg;
 }
 
