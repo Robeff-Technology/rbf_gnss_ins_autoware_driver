@@ -1,8 +1,16 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- Interface -->
-  <include file="$(find-pkg-share rbf_gnss_ins_driver)/launch/gnss_ins_driver.launch.xml"/>
+  <arg name="rbf_gnss_ins_config_path" default="$(find-pkg-share rbf_gnss_ins_driver)/config/gnss_ins.param.yaml"/>
+  <!-- Empty: rbf_ntrip_driver.launch.py picks its own default (package config or the deploy mount). -->
+  <arg name="rbf_ntrip_driver_param_path" default=""/>
 
-  <!-- Socketcan -->
-  <include file="$(find-pkg-share rbf_ntrip_driver)/launch/rbf_ntrip_driver.launch.py"/>
+  <!-- Interface -->
+  <include file="$(find-pkg-share rbf_gnss_ins_driver)/launch/gnss_ins_driver.launch.xml">
+    <arg name="rbf_gnss_ins_config_path" value="$(var rbf_gnss_ins_config_path)"/>
+  </include>
+
+  <!-- NTRIP client -->
+  <include file="$(find-pkg-share rbf_ntrip_driver)/launch/rbf_ntrip_driver.launch.py">
+    <arg name="rbf_ntrip_driver_param_path" value="$(var rbf_ntrip_driver_param_path)"/>
+  </include>
 </launch>
